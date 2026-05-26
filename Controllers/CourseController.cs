@@ -67,5 +67,37 @@ namespace DevJBackend.Controllers
             return Ok(new { message = "Topic added sucessfully" });
         }
 
+
+        [HttpPost("AddMOduleOnly/{crsId}")]
+        public async Task<IActionResult> AddModuleOnly(int crsId,[FromBody] List<ModuleDetail> newmodules)
+        {
+
+            var existictpicId = await _dbcontext.CrsInfo.Include(x => x.Modules).FirstOrDefaultAsync(x => x.CrsId == crsId);
+
+            if (existictpicId == null)
+            {
+                return NotFound("Course Data Not Found");
+            }
+
+            if(newmodules != null && newmodules.Any())
+            {
+                existictpicId.Modules.AddRange(newmodules);
+            }
+
+            foreach (var item in newmodules){
+                bool isExist = await _dbcontext.CrsInfo.AnyAsync(x => x.Modules.Any(m => m.ModuleName == item.ModuleName && m.ModuleDescription == item.ModuleDescription));
+                if (isExist)
+                {
+                    return BadRequest("Module with name and description already exists.");
+                }
+
+            }
+
+            existictpicId.Modules.AddRange(newmodules);
+            //_dbcontext.CrsInfo.AddRange(newmodules)
+            await _dbcontext.SaveChangesAsync();
+            return Ok(new { message = "Topic added sucessfully" });
+        }
+
     }
 }

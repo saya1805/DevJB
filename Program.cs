@@ -54,8 +54,8 @@ app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    //app.UseSwagger();
+    //app.UseSwaggerUI();
 }
 
 //app.UseStaticFiles(new StaticFileOptions
@@ -64,6 +64,9 @@ if (app.Environment.IsDevelopment())
 //        Path.Combine(builder.Environment.ContentRootPath, "uploads")),
 //    RequestPath = "/uploads"
 //});
+app.UseSwagger();
+
+app.UseSwaggerUI();
 
 app.UseRouting();
 
