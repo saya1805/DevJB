@@ -62,9 +62,21 @@ namespace DevJBackend.Controllers
                 return BadRequest("Data Is Empty");
             }
 
-            _dbcontext.CrsInfo.Add(topicData);
-            await _dbcontext.SaveChangesAsync();
-            return Ok(new { message = "Topic added sucessfully" });
+            var existTopic= await _dbcontext.CrsInfo.FirstOrDefaultAsync(x => x.CrsId == topicData.CrsId);
+            if (existTopic != null)
+            {
+                existTopic.Title = topicData.Title;
+                existTopic.Description = topicData.Description;
+                existTopic.crsPrice = topicData.crsPrice;
+                existTopic.crsDurationInDays = topicData.crsDurationInDays;
+
+                await _dbcontext.SaveChangesAsync();
+                return Ok(new { message = "Topic updated successfully" });
+            }else{
+                _dbcontext.CrsInfo.Add(topicData);
+                await _dbcontext.SaveChangesAsync();
+                return Ok(new { message = "Topic added sucessfully" });
+            }
         }
 
 
