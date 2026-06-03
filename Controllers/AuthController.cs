@@ -30,7 +30,7 @@ namespace DevJBackend.Controllers
         //    _config = configuration;
         //}
 
-       
+
         private readonly IAuth _Service;
         private readonly DevDbContext _dbcontext;
         private readonly MailService _mailservice;
@@ -79,7 +79,7 @@ namespace DevJBackend.Controllers
         [HttpPost("signin")]
         public async Task<ActionResult<User?>> Signin(UserDeto request)
         {
-               var user = await _Service.Signinasync(request);
+            var user = await _Service.Signinasync(request);
             return Ok(user);
         }
 
@@ -115,7 +115,7 @@ namespace DevJBackend.Controllers
         [HttpGet("get-users")]
         public async Task<ActionResult<List<UserDeto>>> Getallusers()
         {
-            var users = await _dbcontext.Users.ToListAsync();
+            var users = await _dbcontext.Users.Include(x => x.userCourse).ToListAsync();
             return Ok(users);
         }
 
@@ -157,7 +157,7 @@ namespace DevJBackend.Controllers
         }
 
         [HttpGet("AdminEnd")]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult AdminCheck()
         {
             return Ok();
@@ -184,18 +184,19 @@ namespace DevJBackend.Controllers
             {
                 _mailservice.sendOtpmail(email, otp);
                 return Ok(new { message = "Otp has been sent on your Registered Mail id" });
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
-                return Ok(new { message = "Could not send OTP. Please check your network and try again." + ex.Message});
+                return Ok(new { message = "Could not send OTP. Please check your network and try again." + ex.Message });
             }
         }
 
         [HttpPost("VerifyOtp")]
         public IActionResult Verifyotp(string email, string Otp)
         {
-            if(_memorycache.TryGetValue(email, out string storedOtp))
+            if (_memorycache.TryGetValue(email, out string storedOtp))
             {
-                if(storedOtp == Otp)
+                if (storedOtp == Otp)
                 {
                     _memorycache.Remove(email);
                     return Ok(new { message = "Otp Verified Sucessfully" });
@@ -240,5 +241,22 @@ namespace DevJBackend.Controllers
 
         }
 
+        [HttpPost("AddCoursedetails/{Id}")]
+        public async Task<IActionResult> AddCoursedetails(Guid Id, [FromBody] List<UserCourseDetails> courseDetails)
+        {
+            var existuser = await _dbcontext.Users.Include(x => x.userCourse).FirstOrDefaultAsync(x => x.Id == Id);
+            if (existuser == null)
+            {
+                return BadRequest("User Not Found");
+            }
+            //if(existuser != null)
+            //{
+                int courseCount = existuser.userCourse.Count;
+                existuser.userCourse.AddRange(courseDetails);
+                await _dbcontext.SaveChangesAsync();
+                return Ok(new { message = "Course Buy Successfully", totalusers = courseCount });
+            //}
+          
+        }
     }
 }
