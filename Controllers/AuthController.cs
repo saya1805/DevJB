@@ -258,5 +258,29 @@ namespace DevJBackend.Controllers
             //}
           
         }
+
+        [HttpGet("GetUserCrsbyId/{id}")]
+        public async Task<IActionResult> GetUserCrsbyId(Guid id)
+        {
+            var UserCrsIdInfo = await _dbcontext.Users.Include(x => x.userCourse).FirstOrDefaultAsync(x => x.Id == id);
+            if(UserCrsIdInfo == null)
+            {
+                return BadRequest("Data Not Found");
+            }
+            var sendUserCrsInfo = new
+            {
+                Username = UserCrsIdInfo.username,
+                UserCrsCount = UserCrsIdInfo.courseCount,
+                userCrsInfo = UserCrsIdInfo.userCourse.Select(x => new
+                {
+                    x.Coursename,
+                    x.course_days,
+                    x.Course_status,
+                    x.payment_status,
+                    x.payment_mode
+                }).ToList()
+            };
+            return Ok(sendUserCrsInfo);
+        }
     }
 }
